@@ -11,7 +11,7 @@
 
     [TestClass]
     [TestCategory("ChangeFeed")]
-    public class GetChangeFeedIteratorOperationsLogTests : BaseCosmosClientHelper
+    public class GetChangeFeedIteratorAllOperationsTests : BaseCosmosClientHelper
     {
         private static readonly string PartitionKey = "/id";
 
@@ -30,7 +30,7 @@
         private async Task<ContainerInternal> InitializeLargeContainerAsync()
         {
             ContainerResponse response = await this.database.CreateContainerAsync(
-                new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorOperationsLogTests.PartitionKey),
+                new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorAllOperationsTests.PartitionKey),
                 throughput: 20000,
                 cancellationToken: this.cancellationToken);
 
@@ -40,7 +40,7 @@
         private async Task<ContainerInternal> InitializeContainerAsync()
         {
             ContainerResponse response = await this.database.CreateContainerAsync(
-                new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorOperationsLogTests.PartitionKey),
+                new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorAllOperationsTests.PartitionKey),
                 cancellationToken: this.cancellationToken);
 
             return (ContainerInternal)response;
@@ -53,7 +53,7 @@
         [TestMethod]
         public async Task FeedRangeEpk_FromPartitionKey_VerifyingWireFormatTests()
         {
-            ContainerProperties properties = new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorOperationsLogTests.PartitionKey);
+            ContainerProperties properties = new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorAllOperationsTests.PartitionKey);
             properties.ChangeFeedPolicy.FullFidelityRetention = TimeSpan.FromMinutes(5);
             ContainerResponse response = await this.database.CreateContainerAsync(
                 properties,
@@ -87,7 +87,7 @@
                     {
                         List<ItemChanges<Item>> resources = feedResponse.Resource.ToList();
 
-                        GetChangeFeedIteratorOperationsLogTests.AssertGatewayMode(feedResponse);
+                        GetChangeFeedIteratorAllOperationsTests.AssertGatewayMode(feedResponse);
                         
                         Assert.AreEqual(expected: 2, actual: resources.Count);
 
@@ -99,6 +99,9 @@
                         Assert.AreEqual(expected: "WA", actual: createOperation.Current.State);
                         Assert.AreEqual(expected: "98052", actual: createOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Create, actual: createOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: createOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: createOperation.Metadata.CurrentLSN);
+                        Assert.AreEqual(expected: default, actual: createOperation.Metadata.PreviousLSN);
                         Assert.IsNull(createOperation.Previous);
 
                         ItemChanges<Item> replaceOperation = resources[1];
@@ -109,6 +112,9 @@
                         Assert.AreEqual(expected: "GA", actual: replaceOperation.Current.State);
                         Assert.AreEqual(expected: "30363", actual: replaceOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Replace, actual: replaceOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.CurrentLSN);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.PreviousLSN);
                         Assert.AreEqual(expected: id, actual: replaceOperation.Previous.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: replaceOperation.Previous.Line1);
                         Assert.AreEqual(expected: "Redmond", actual: replaceOperation.Previous.City);
@@ -128,7 +134,7 @@
         [TestMethod]
         public async Task FeedRangeEpk_Explicit_FullRange_VerifyingWireFormatTests()
         {
-            ContainerProperties properties = new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorOperationsLogTests.PartitionKey);
+            ContainerProperties properties = new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorAllOperationsTests.PartitionKey);
             properties.ChangeFeedPolicy.FullFidelityRetention = TimeSpan.FromMinutes(5);
             ContainerResponse response = await this.database.CreateContainerAsync(
                 properties,
@@ -163,7 +169,7 @@
                     {
                         List<ItemChanges<Item>> resources = feedResponse.Resource.ToList();
 
-                        GetChangeFeedIteratorOperationsLogTests.AssertGatewayMode(feedResponse);
+                        GetChangeFeedIteratorAllOperationsTests.AssertGatewayMode(feedResponse);
 
                         Assert.AreEqual(expected: 4, actual: resources.Count);
 
@@ -175,6 +181,9 @@
                         Assert.AreEqual(expected: "Thailand", actual: firstCreateOperation.Current.State);
                         Assert.AreEqual(expected: "10330", actual: firstCreateOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Create, actual: firstCreateOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: firstCreateOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: firstCreateOperation.Metadata.CurrentLSN);
+                        Assert.AreEqual(expected: default, actual: firstCreateOperation.Metadata.PreviousLSN);
                         Assert.IsNull(firstCreateOperation.Previous);
 
                         ItemChanges<Item> createOperation = resources[1];
@@ -185,6 +194,9 @@
                         Assert.AreEqual(expected: "WA", actual: createOperation.Current.State);
                         Assert.AreEqual(expected: "98052", actual: createOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Create, actual: createOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: createOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: createOperation.Metadata.CurrentLSN);
+                        Assert.AreEqual(expected: default, actual: createOperation.Metadata.PreviousLSN);
                         Assert.IsNull(createOperation.Previous);
 
                         ItemChanges<Item> replaceOperation = resources[2];
@@ -195,6 +207,9 @@
                         Assert.AreEqual(expected: "GA", actual: replaceOperation.Current.State);
                         Assert.AreEqual(expected: "30363", actual: replaceOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Replace, actual: replaceOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.CurrentLSN);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.PreviousLSN);
                         Assert.AreEqual(expected: id, actual: replaceOperation.Previous.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: replaceOperation.Previous.Line1);
                         Assert.AreEqual(expected: "Redmond", actual: replaceOperation.Previous.City);
@@ -209,6 +224,9 @@
                         Assert.IsNull(deleteOperation.Current.State);
                         Assert.IsNull(deleteOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Delete, actual: deleteOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: deleteOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: deleteOperation.Metadata.CurrentLSN);
+                        Assert.AreNotEqual(notExpected: default, actual: deleteOperation.Metadata.PreviousLSN);
                         Assert.AreEqual(expected: id, actual: deleteOperation.Previous.Id);
                         Assert.AreEqual(expected: "205 16th St NW", actual: deleteOperation.Previous.Line1);
                         Assert.AreEqual(expected: "Atlanta", actual: deleteOperation.Previous.City);
@@ -228,7 +246,7 @@
         [TestMethod]
         public async Task FeedRangeEpk_Implicit_FullRange_VerifyingWireFormatTests()
         {
-            ContainerProperties properties = new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorOperationsLogTests.PartitionKey);
+            ContainerProperties properties = new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorAllOperationsTests.PartitionKey);
             properties.ChangeFeedPolicy.FullFidelityRetention = TimeSpan.FromMinutes(5);
             ContainerResponse response = await this.database.CreateContainerAsync(
                 properties,
@@ -263,7 +281,7 @@
                     {
                         List<ItemChanges<Item>> resources = feedResponse.Resource.ToList();
 
-                        GetChangeFeedIteratorOperationsLogTests.AssertGatewayMode(feedResponse);
+                        GetChangeFeedIteratorAllOperationsTests.AssertGatewayMode(feedResponse);
 
                         Assert.AreEqual(expected: 4, actual: resources.Count);
 
@@ -275,6 +293,9 @@
                         Assert.AreEqual(expected: "Thailand", actual: firstCreateOperation.Current.State);
                         Assert.AreEqual(expected: "10330", actual: firstCreateOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Create, actual: firstCreateOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: firstCreateOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: firstCreateOperation.Metadata.CurrentLSN);
+                        Assert.AreEqual(expected: default, actual: firstCreateOperation.Metadata.PreviousLSN);
                         Assert.IsNull(firstCreateOperation.Previous);
 
                         ItemChanges<Item> createOperation = resources[1];
@@ -285,6 +306,9 @@
                         Assert.AreEqual(expected: "WA", actual: createOperation.Current.State);
                         Assert.AreEqual(expected: "98052", actual: createOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Create, actual: createOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: createOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: createOperation.Metadata.CurrentLSN);
+                        Assert.AreEqual(expected: default, actual: createOperation.Metadata.PreviousLSN);
                         Assert.IsNull(createOperation.Previous);
 
                         ItemChanges<Item> replaceOperation = resources[2];
@@ -295,6 +319,9 @@
                         Assert.AreEqual(expected: "GA", actual: replaceOperation.Current.State);
                         Assert.AreEqual(expected: "30363", actual: replaceOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Replace, actual: replaceOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.CurrentLSN);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.PreviousLSN);
                         Assert.AreEqual(expected: id, actual: replaceOperation.Previous.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: replaceOperation.Previous.Line1);
                         Assert.AreEqual(expected: "Redmond", actual: replaceOperation.Previous.City);
@@ -309,6 +336,9 @@
                         Assert.IsNull(deleteOperation.Current.State);
                         Assert.IsNull(deleteOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Delete, actual: deleteOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: deleteOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: deleteOperation.Metadata.CurrentLSN);
+                        Assert.AreNotEqual(notExpected: default, actual: deleteOperation.Metadata.PreviousLSN);
                         Assert.AreEqual(expected: id, actual: deleteOperation.Previous.Id);
                         Assert.AreEqual(expected: "205 16th St NW", actual: deleteOperation.Previous.Line1);
                         Assert.AreEqual(expected: "Atlanta", actual: deleteOperation.Previous.City);
@@ -328,7 +358,7 @@
         [TestMethod]
         public async Task FeedRangePartitionKeyRange_FromPartitionKey_VerifyingWireFormatTests()
         {
-            ContainerProperties properties = new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorOperationsLogTests.PartitionKey);
+            ContainerProperties properties = new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorAllOperationsTests.PartitionKey);
             properties.ChangeFeedPolicy.FullFidelityRetention = TimeSpan.FromMinutes(5);
             ContainerResponse response = await this.database.CreateContainerAsync(
                 properties,
@@ -366,7 +396,7 @@
                     {
                         List<ItemChanges<Item>> resources = feedResponse.Resource.ToList();
 
-                        GetChangeFeedIteratorOperationsLogTests.AssertGatewayMode(feedResponse);
+                        GetChangeFeedIteratorAllOperationsTests.AssertGatewayMode(feedResponse);
 
                         Assert.AreEqual(expected: 2, actual: resources.Count);
 
@@ -378,6 +408,9 @@
                         Assert.AreEqual(expected: "WA", actual: createOperation.Current.State);
                         Assert.AreEqual(expected: "98052", actual: createOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Create, actual: createOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: createOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: createOperation.Metadata.CurrentLSN);
+                        Assert.AreEqual(expected: default, actual: createOperation.Metadata.PreviousLSN);
                         Assert.IsNull(createOperation.Previous);
 
                         ItemChanges<Item> replaceOperation = resources[1];
@@ -388,6 +421,9 @@
                         Assert.AreEqual(expected: "GA", actual: replaceOperation.Current.State);
                         Assert.AreEqual(expected: "30363", actual: replaceOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Replace, actual: replaceOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.CurrentLSN);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.PreviousLSN);
                         Assert.AreEqual(expected: id, actual: replaceOperation.Previous.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: replaceOperation.Previous.Line1);
                         Assert.AreEqual(expected: "Redmond", actual: replaceOperation.Previous.City);
@@ -407,7 +443,7 @@
         [TestMethod]
         public async Task FeedRange_FromPartitionKey_VerifyingWireFormatTests()
         {
-            ContainerProperties properties = new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorOperationsLogTests.PartitionKey);
+            ContainerProperties properties = new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorAllOperationsTests.PartitionKey);
             properties.ChangeFeedPolicy.FullFidelityRetention = TimeSpan.FromMinutes(5);
             ContainerResponse response = await this.database.CreateContainerAsync(
                 properties,
@@ -439,30 +475,39 @@
                     }
                     else
                     {
-                        List<ItemChanges<Item>> resources = feedResponse.Resource.ToList();
+                        List<ItemChanges<Item>> itemChanges = feedResponse.Resource.ToList();
 
-                        GetChangeFeedIteratorOperationsLogTests.AssertGatewayMode(feedResponse);
+                        GetChangeFeedIteratorAllOperationsTests.AssertGatewayMode(feedResponse);
 
-                        Assert.AreEqual(expected: 2, actual: resources.Count);
+                        Assert.AreEqual(expected: 2, actual: itemChanges.Count);
 
-                        ItemChanges<Item> createOperation = resources[0];
+                        ItemChanges<Item> createOperation = itemChanges[0];
 
                         Assert.AreEqual(expected: id, actual: createOperation.Current.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: createOperation.Current.Line1);
                         Assert.AreEqual(expected: "Redmond", actual: createOperation.Current.City);
                         Assert.AreEqual(expected: "WA", actual: createOperation.Current.State);
                         Assert.AreEqual(expected: "98052", actual: createOperation.Current.ZipCode);
+                        Assert.IsNotNull(createOperation.Metadata);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Create, actual: createOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: createOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: createOperation.Metadata.CurrentLSN);
+                        Assert.AreEqual(expected: default, actual: createOperation.Metadata.PreviousLSN);
                         Assert.IsNull(createOperation.Previous);
 
-                        ItemChanges<Item> replaceOperation = resources[1];
+                        ItemChanges<Item> replaceOperation = itemChanges[1];
 
                         Assert.AreEqual(expected: id, actual: replaceOperation.Current.Id);
                         Assert.AreEqual(expected: "205 16th St NW", actual: replaceOperation.Current.Line1);
                         Assert.AreEqual(expected: "Atlanta", actual: replaceOperation.Current.City);
                         Assert.AreEqual(expected: "GA", actual: replaceOperation.Current.State);
                         Assert.AreEqual(expected: "30363", actual: replaceOperation.Current.ZipCode);
+                        Assert.IsNotNull(createOperation.Metadata);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Replace, actual: replaceOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.CurrentLSN);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.PreviousLSN);
+                        Assert.IsNotNull(replaceOperation.Previous);
                         Assert.AreEqual(expected: id, actual: replaceOperation.Previous.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: replaceOperation.Previous.Line1);
                         Assert.AreEqual(expected: "Redmond", actual: replaceOperation.Previous.City);
@@ -482,7 +527,7 @@
         [TestMethod]
         public async Task FeedRange_VerifyingWireFormatTests()
         {
-            ContainerProperties properties = new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorOperationsLogTests.PartitionKey);
+            ContainerProperties properties = new ContainerProperties(id: Guid.NewGuid().ToString(), partitionKeyPath: GetChangeFeedIteratorAllOperationsTests.PartitionKey);
             properties.ChangeFeedPolicy.FullFidelityRetention = TimeSpan.FromMinutes(5);
             ContainerResponse response = await this.database.CreateContainerAsync(
                 properties,
@@ -519,7 +564,7 @@
                     {
                         List<ItemChanges<Item>> resources = feedResponse.Resource.ToList();
 
-                        GetChangeFeedIteratorOperationsLogTests.AssertGatewayMode(feedResponse);
+                        GetChangeFeedIteratorAllOperationsTests.AssertGatewayMode(feedResponse);
 
                         Assert.AreEqual(expected: 4, actual: resources.Count);
 
@@ -531,6 +576,10 @@
                         Assert.AreEqual(expected: "Thailand", actual: firstCreateOperation.Current.State);
                         Assert.AreEqual(expected: "10330", actual: firstCreateOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Create, actual: firstCreateOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: firstCreateOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: firstCreateOperation.Metadata.CurrentLSN);
+                        Assert.AreEqual(expected: default, actual: firstCreateOperation.Metadata.PreviousLSN);
+                        Console.WriteLine(firstCreateOperation.Metadata.CRTS);
                         Assert.IsNull(firstCreateOperation.Previous);
 
                         ItemChanges<Item> createOperation = resources[1];
@@ -541,6 +590,10 @@
                         Assert.AreEqual(expected: "WA", actual: createOperation.Current.State);
                         Assert.AreEqual(expected: "98052", actual: createOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Create, actual: createOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: createOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: createOperation.Metadata.CurrentLSN);
+                        Assert.AreEqual(expected: default, actual: createOperation.Metadata.PreviousLSN);
+                        Console.WriteLine(firstCreateOperation.Metadata.CRTS);
                         Assert.IsNull(createOperation.Previous);
 
                         ItemChanges<Item> replaceOperation = resources[2];
@@ -551,6 +604,10 @@
                         Assert.AreEqual(expected: "GA", actual: replaceOperation.Current.State);
                         Assert.AreEqual(expected: "30363", actual: replaceOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Replace, actual: replaceOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.CurrentLSN);
+                        Assert.AreNotEqual(notExpected: default, actual: replaceOperation.Metadata.PreviousLSN);
+                        Console.WriteLine(firstCreateOperation.Metadata.CRTS);
                         Assert.AreEqual(expected: id, actual: replaceOperation.Previous.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: replaceOperation.Previous.Line1);
                         Assert.AreEqual(expected: "Redmond", actual: replaceOperation.Previous.City);
@@ -565,6 +622,10 @@
                         Assert.IsNull(deleteOperation.Current.State);
                         Assert.IsNull(deleteOperation.Current.ZipCode);
                         Assert.AreEqual(expected: ChangeFeedOperationType.Delete, actual: deleteOperation.Metadata.OperationType);
+                        Assert.AreNotEqual(notExpected: default, actual: deleteOperation.Metadata.CRTS);
+                        Assert.AreNotEqual(notExpected: default, actual: deleteOperation.Metadata.CurrentLSN);
+                        Assert.AreNotEqual(notExpected: default, actual: deleteOperation.Metadata.PreviousLSN);
+                        Console.WriteLine(firstCreateOperation.Metadata.CRTS);
                         Assert.AreEqual(expected: id, actual: deleteOperation.Previous.Id);
                         Assert.AreEqual(expected: "205 16th St NW", actual: deleteOperation.Previous.Line1);
                         Assert.AreEqual(expected: "Atlanta", actual: deleteOperation.Previous.City);
