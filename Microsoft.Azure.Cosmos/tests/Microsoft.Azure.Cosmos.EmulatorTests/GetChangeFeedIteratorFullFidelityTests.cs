@@ -61,14 +61,14 @@
             ContainerInternal container = (ContainerInternal)response;
             string id = Guid.NewGuid().ToString();
             string otherId = Guid.NewGuid().ToString();
-            using (FeedIterator<ItemChanges<Item>> feedIterator = container.GetChangeFeedIterator<ItemChanges<Item>>(
+            using (FeedIterator<ChangeFeedItemChanges<Item>> feedIterator = container.GetChangeFeedIterator<ChangeFeedItemChanges<Item>>(
                 changeFeedStartFrom: ChangeFeedStartFrom.Now(FeedRangeEpk.FromPartitionKey(new PartitionKey(id))),
             changeFeedMode: ChangeFeedMode.FullFidelity))
             {
                 string continuation = null;
                 while (feedIterator.HasMoreResults)
                 {
-                    FeedResponse<ItemChanges<Item>> feedResponse = await feedIterator.ReadNextAsync();
+                    FeedResponse<ChangeFeedItemChanges<Item>> feedResponse = await feedIterator.ReadNextAsync();
 
                     if (feedResponse.StatusCode == System.Net.HttpStatusCode.NotModified)
                     {
@@ -85,13 +85,13 @@
                     }
                     else
                     {
-                        List<ItemChanges<Item>> resources = feedResponse.Resource.ToList();
+                        List<ChangeFeedItemChanges<Item>> resources = feedResponse.Resource.ToList();
 
                         GetChangeFeedIteratorFullFidelityTests.AssertGatewayMode(feedResponse);
                         
                         Assert.AreEqual(expected: 2, actual: resources.Count);
 
-                        ItemChanges<Item> createOperation = resources[0];
+                        ChangeFeedItemChanges<Item> createOperation = resources[0];
 
                         Assert.AreEqual(expected: id, actual: createOperation.Current.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: createOperation.Current.Line1);
@@ -104,7 +104,7 @@
                         Assert.AreEqual(expected: default, actual: createOperation.Metadata.PreviousLogSequenceNumber);
                         Assert.IsNull(createOperation.Previous);
 
-                        ItemChanges<Item> replaceOperation = resources[1];
+                        ChangeFeedItemChanges<Item> replaceOperation = resources[1];
 
                         Assert.AreEqual(expected: id, actual: replaceOperation.Current.Id);
                         Assert.AreEqual(expected: "205 16th St NW", actual: replaceOperation.Current.Line1);
@@ -142,14 +142,14 @@
             ContainerInternal container = (ContainerInternal)response;
             string id = Guid.NewGuid().ToString();
             string otherId = Guid.NewGuid().ToString();
-            using (FeedIterator<ItemChanges<Item>> feedIterator = container.GetChangeFeedIterator<ItemChanges<Item>>(
+            using (FeedIterator<ChangeFeedItemChanges<Item>> feedIterator = container.GetChangeFeedIterator<ChangeFeedItemChanges<Item>>(
                 changeFeedStartFrom: ChangeFeedStartFrom.Now(FeedRangeEpk.FullRange),
                 changeFeedMode: ChangeFeedMode.FullFidelity))
             {
                 string continuation = null;
                 while (feedIterator.HasMoreResults)
                 {
-                    FeedResponse<ItemChanges<Item>> feedResponse = await feedIterator.ReadNextAsync();
+                    FeedResponse<ChangeFeedItemChanges<Item>> feedResponse = await feedIterator.ReadNextAsync();
 
                     if (feedResponse.StatusCode == System.Net.HttpStatusCode.NotModified)
                     {
@@ -167,13 +167,13 @@
                     }
                     else
                     {
-                        List<ItemChanges<Item>> resources = feedResponse.Resource.ToList();
+                        List<ChangeFeedItemChanges<Item>> resources = feedResponse.Resource.ToList();
 
                         GetChangeFeedIteratorFullFidelityTests.AssertGatewayMode(feedResponse);
 
                         Assert.AreEqual(expected: 4, actual: resources.Count);
 
-                        ItemChanges<Item> firstCreateOperation = resources[0];
+                        ChangeFeedItemChanges<Item> firstCreateOperation = resources[0];
 
                         Assert.AreEqual(expected: otherId, actual: firstCreateOperation.Current.Id);
                         Assert.AreEqual(expected: "87 38floor, Witthayu Rd, Lumphini, Pathum Wan District", actual: firstCreateOperation.Current.Line1);
@@ -186,7 +186,7 @@
                         Assert.AreEqual(expected: default, actual: firstCreateOperation.Metadata.PreviousLogSequenceNumber);
                         Assert.IsNull(firstCreateOperation.Previous);
 
-                        ItemChanges<Item> createOperation = resources[1];
+                        ChangeFeedItemChanges<Item> createOperation = resources[1];
 
                         Assert.AreEqual(expected: id, actual: createOperation.Current.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: createOperation.Current.Line1);
@@ -199,7 +199,7 @@
                         Assert.AreEqual(expected: default, actual: createOperation.Metadata.PreviousLogSequenceNumber);
                         Assert.IsNull(createOperation.Previous);
 
-                        ItemChanges<Item> replaceOperation = resources[2];
+                        ChangeFeedItemChanges<Item> replaceOperation = resources[2];
 
                         Assert.AreEqual(expected: id, actual: replaceOperation.Current.Id);
                         Assert.AreEqual(expected: "205 16th St NW", actual: replaceOperation.Current.Line1);
@@ -216,7 +216,7 @@
                         Assert.AreEqual(expected: "WA", actual: replaceOperation.Previous.State);
                         Assert.AreEqual(expected: "98052", actual: replaceOperation.Previous.ZipCode);
 
-                        ItemChanges<Item> deleteOperation = resources[3];
+                        ChangeFeedItemChanges<Item> deleteOperation = resources[3];
 
                         Assert.IsNull(deleteOperation.Current.Id);
                         Assert.IsNull(deleteOperation.Current.Line1);
@@ -254,14 +254,14 @@
             ContainerInternal container = (ContainerInternal)response;
             string id = Guid.NewGuid().ToString();
             string otherId = Guid.NewGuid().ToString();
-            using (FeedIterator<ItemChanges<Item>> feedIterator = container.GetChangeFeedIterator<ItemChanges<Item>>(
+            using (FeedIterator<ChangeFeedItemChanges<Item>> feedIterator = container.GetChangeFeedIterator<ChangeFeedItemChanges<Item>>(
                 changeFeedStartFrom: ChangeFeedStartFrom.Now(),
                 changeFeedMode: ChangeFeedMode.FullFidelity))
             {
                 string continuation = null;
                 while (feedIterator.HasMoreResults)
                 {
-                    FeedResponse<ItemChanges<Item>> feedResponse = await feedIterator.ReadNextAsync();
+                    FeedResponse<ChangeFeedItemChanges<Item>> feedResponse = await feedIterator.ReadNextAsync();
 
                     if (feedResponse.StatusCode == System.Net.HttpStatusCode.NotModified)
                     {
@@ -279,13 +279,13 @@
                     }
                     else
                     {
-                        List<ItemChanges<Item>> resources = feedResponse.Resource.ToList();
+                        List<ChangeFeedItemChanges<Item>> resources = feedResponse.Resource.ToList();
 
                         GetChangeFeedIteratorFullFidelityTests.AssertGatewayMode(feedResponse);
 
                         Assert.AreEqual(expected: 4, actual: resources.Count);
 
-                        ItemChanges<Item> firstCreateOperation = resources[0];
+                        ChangeFeedItemChanges<Item> firstCreateOperation = resources[0];
 
                         Assert.AreEqual(expected: otherId, actual: firstCreateOperation.Current.Id);
                         Assert.AreEqual(expected: "87 38floor, Witthayu Rd, Lumphini, Pathum Wan District", actual: firstCreateOperation.Current.Line1);
@@ -298,7 +298,7 @@
                         Assert.AreEqual(expected: default, actual: firstCreateOperation.Metadata.PreviousLogSequenceNumber);
                         Assert.IsNull(firstCreateOperation.Previous);
 
-                        ItemChanges<Item> createOperation = resources[1];
+                        ChangeFeedItemChanges<Item> createOperation = resources[1];
 
                         Assert.AreEqual(expected: id, actual: createOperation.Current.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: createOperation.Current.Line1);
@@ -311,7 +311,7 @@
                         Assert.AreEqual(expected: default, actual: createOperation.Metadata.PreviousLogSequenceNumber);
                         Assert.IsNull(createOperation.Previous);
 
-                        ItemChanges<Item> replaceOperation = resources[2];
+                        ChangeFeedItemChanges<Item> replaceOperation = resources[2];
 
                         Assert.AreEqual(expected: id, actual: replaceOperation.Current.Id);
                         Assert.AreEqual(expected: "205 16th St NW", actual: replaceOperation.Current.Line1);
@@ -328,7 +328,7 @@
                         Assert.AreEqual(expected: "WA", actual: replaceOperation.Previous.State);
                         Assert.AreEqual(expected: "98052", actual: replaceOperation.Previous.ZipCode);
 
-                        ItemChanges<Item> deleteOperation = resources[3];
+                        ChangeFeedItemChanges<Item> deleteOperation = resources[3];
 
                         Assert.IsNull(deleteOperation.Current.Id);
                         Assert.IsNull(deleteOperation.Current.Line1);
@@ -366,14 +366,14 @@
             ContainerInternal container = (ContainerInternal)response;
             string id = Guid.NewGuid().ToString();
             string otherId = Guid.NewGuid().ToString();
-            using (FeedIterator<ItemChanges<Item>> feedIterator = container.GetChangeFeedIterator<ItemChanges<Item>>(
+            using (FeedIterator<ChangeFeedItemChanges<Item>> feedIterator = container.GetChangeFeedIterator<ChangeFeedItemChanges<Item>>(
                 changeFeedStartFrom: ChangeFeedStartFrom.Now(FeedRangePartitionKeyRange.FromPartitionKey(new PartitionKey(id))),
                 changeFeedMode: ChangeFeedMode.FullFidelity))
             {
                 string continuation = null;
                 while (feedIterator.HasMoreResults)
                 {
-                    FeedResponse<ItemChanges<Item>> feedResponse = await feedIterator.ReadNextAsync();
+                    FeedResponse<ChangeFeedItemChanges<Item>> feedResponse = await feedIterator.ReadNextAsync();
 
                     Console.WriteLine($"feed response status code: {feedResponse.ContinuationToken}, {feedResponse.StatusCode}, {feedIterator.HasMoreResults}");
 
@@ -394,13 +394,13 @@
                     }
                     else
                     {
-                        List<ItemChanges<Item>> resources = feedResponse.Resource.ToList();
+                        List<ChangeFeedItemChanges<Item>> resources = feedResponse.Resource.ToList();
 
                         GetChangeFeedIteratorFullFidelityTests.AssertGatewayMode(feedResponse);
 
                         Assert.AreEqual(expected: 2, actual: resources.Count);
 
-                        ItemChanges<Item> createOperation = resources[0];
+                        ChangeFeedItemChanges<Item> createOperation = resources[0];
 
                         Assert.AreEqual(expected: id, actual: createOperation.Current.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: createOperation.Current.Line1);
@@ -413,7 +413,7 @@
                         Assert.AreEqual(expected: default, actual: createOperation.Metadata.PreviousLogSequenceNumber);
                         Assert.IsNull(createOperation.Previous);
 
-                        ItemChanges<Item> replaceOperation = resources[1];
+                        ChangeFeedItemChanges<Item> replaceOperation = resources[1];
 
                         Assert.AreEqual(expected: id, actual: replaceOperation.Current.Id);
                         Assert.AreEqual(expected: "205 16th St NW", actual: replaceOperation.Current.Line1);
@@ -451,14 +451,14 @@
             ContainerInternal container = (ContainerInternal)response;
             string id = Guid.NewGuid().ToString();
             string otherId = Guid.NewGuid().ToString();
-            using (FeedIterator<ItemChanges<Item>> feedIterator = container.GetChangeFeedIterator<ItemChanges<Item>>(
+            using (FeedIterator<ChangeFeedItemChanges<Item>> feedIterator = container.GetChangeFeedIterator<ChangeFeedItemChanges<Item>>(
                 changeFeedStartFrom: ChangeFeedStartFrom.Now(FeedRange.FromPartitionKey(new PartitionKey(id))),
                 changeFeedMode: ChangeFeedMode.FullFidelity))
             {
                 string continuation = null;
                 while (feedIterator.HasMoreResults)
                 {
-                    FeedResponse<ItemChanges<Item>> feedResponse = await feedIterator.ReadNextAsync();
+                    FeedResponse<ChangeFeedItemChanges<Item>> feedResponse = await feedIterator.ReadNextAsync();
 
                     if (feedResponse.StatusCode == System.Net.HttpStatusCode.NotModified)
                     {
@@ -475,13 +475,13 @@
                     }
                     else
                     {
-                        List<ItemChanges<Item>> itemChanges = feedResponse.Resource.ToList();
+                        List<ChangeFeedItemChanges<Item>> itemChanges = feedResponse.Resource.ToList();
 
                         GetChangeFeedIteratorFullFidelityTests.AssertGatewayMode(feedResponse);
 
                         Assert.AreEqual(expected: 2, actual: itemChanges.Count);
 
-                        ItemChanges<Item> createOperation = itemChanges[0];
+                        ChangeFeedItemChanges<Item> createOperation = itemChanges[0];
 
                         Assert.AreEqual(expected: id, actual: createOperation.Current.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: createOperation.Current.Line1);
@@ -495,7 +495,7 @@
                         Assert.AreEqual(expected: default, actual: createOperation.Metadata.PreviousLogSequenceNumber);
                         Assert.IsNull(createOperation.Previous);
 
-                        ItemChanges<Item> replaceOperation = itemChanges[1];
+                        ChangeFeedItemChanges<Item> replaceOperation = itemChanges[1];
 
                         Assert.AreEqual(expected: id, actual: replaceOperation.Current.Id);
                         Assert.AreEqual(expected: "205 16th St NW", actual: replaceOperation.Current.Line1);
@@ -537,14 +537,14 @@
             string id = Guid.NewGuid().ToString();
             string otherId = Guid.NewGuid().ToString();
             
-            using (FeedIterator<ItemChanges<Item>> feedIterator = container.GetChangeFeedIterator<ItemChanges<Item>>(
+            using (FeedIterator<ChangeFeedItemChanges<Item>> feedIterator = container.GetChangeFeedIterator<ChangeFeedItemChanges<Item>>(
                 changeFeedStartFrom: ChangeFeedStartFrom.Now(ranges[0]),
                 changeFeedMode: ChangeFeedMode.FullFidelity))
             {
                 string continuation = null;
                 while (feedIterator.HasMoreResults)
                 {
-                    FeedResponse<ItemChanges<Item>> feedResponse = await feedIterator.ReadNextAsync();
+                    FeedResponse<ChangeFeedItemChanges<Item>> feedResponse = await feedIterator.ReadNextAsync();
 
                     if (feedResponse.StatusCode == System.Net.HttpStatusCode.NotModified)
                     {
@@ -562,13 +562,13 @@
                     }
                     else
                     {
-                        List<ItemChanges<Item>> resources = feedResponse.Resource.ToList();
+                        List<ChangeFeedItemChanges<Item>> resources = feedResponse.Resource.ToList();
 
                         GetChangeFeedIteratorFullFidelityTests.AssertGatewayMode(feedResponse);
 
                         Assert.AreEqual(expected: 4, actual: resources.Count);
 
-                        ItemChanges<Item> firstCreateOperation = resources[0];
+                        ChangeFeedItemChanges<Item> firstCreateOperation = resources[0];
 
                         Assert.AreEqual(expected: otherId, actual: firstCreateOperation.Current.Id);
                         Assert.AreEqual(expected: "87 38floor, Witthayu Rd, Lumphini, Pathum Wan District", actual: firstCreateOperation.Current.Line1);
@@ -582,7 +582,7 @@
                         Console.WriteLine(firstCreateOperation.Metadata.ConflictResolutionTimestamp);
                         Assert.IsNull(firstCreateOperation.Previous);
 
-                        ItemChanges<Item> createOperation = resources[1];
+                        ChangeFeedItemChanges<Item> createOperation = resources[1];
 
                         Assert.AreEqual(expected: id, actual: createOperation.Current.Id);
                         Assert.AreEqual(expected: "One Microsoft Way", actual: createOperation.Current.Line1);
@@ -596,7 +596,7 @@
                         Console.WriteLine(firstCreateOperation.Metadata.ConflictResolutionTimestamp);
                         Assert.IsNull(createOperation.Previous);
 
-                        ItemChanges<Item> replaceOperation = resources[2];
+                        ChangeFeedItemChanges<Item> replaceOperation = resources[2];
 
                         Assert.AreEqual(expected: id, actual: replaceOperation.Current.Id);
                         Assert.AreEqual(expected: "205 16th St NW", actual: replaceOperation.Current.Line1);
@@ -614,7 +614,7 @@
                         Assert.AreEqual(expected: "WA", actual: replaceOperation.Previous.State);
                         Assert.AreEqual(expected: "98052", actual: replaceOperation.Previous.ZipCode);
 
-                        ItemChanges<Item> deleteOperation = resources[3];
+                        ChangeFeedItemChanges<Item> deleteOperation = resources[3];
 
                         Assert.IsNull(deleteOperation.Current.Id);
                         Assert.IsNull(deleteOperation.Current.Line1);
@@ -638,7 +638,7 @@
             }
         }
 
-        private static void AssertGatewayMode(FeedResponse<ItemChanges<Item>> feedResponse)
+        private static void AssertGatewayMode(FeedResponse<ChangeFeedItemChanges<Item>> feedResponse)
         {
             string diagnostics = feedResponse.Diagnostics.ToString();
             JToken jToken = JToken.Parse(diagnostics);
